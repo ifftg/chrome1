@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>易弗YouTube视频下载</title>
+    <meta name="description" content="易弗YouTube视频下载器 - 一个简单易用的Chrome插件，支持多种格式的YouTube视频下载。">
+    <meta name="keywords" content="YouTube下载,视频下载,Chrome插件,易弗下载器">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <img src="images/logo.png" alt="易弗YouTube视频下载" class="logo-img">
+                    <span class="logo-text">易弗YouTube视频下载</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="#features" class="nav-link">功能特色</a>
+                    <a href="#install" class="nav-link">安装指南</a>
+                    <a href="#contact" class="nav-link">联系我们</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- 主要内容区域 -->
+    <main class="main">
+        <!-- 英雄区域 -->
+        <section class="hero">
+            <div class="hero-container">
+                <div class="hero-content">
+                    <h1 class="hero-title">轻松下载您喜爱的YouTube视频</h1>
+                    <p class="hero-description">
+                        易弗YouTube视频下载器是一个功能强大且简单易用的Chrome浏览器插件。
+                        支持多种视频格式和清晰度选择，让您轻松保存喜欢的视频内容到本地设备。
+                    </p>
+                    <div class="hero-features">
+                        <div class="feature-item">
+                            <span class="feature-icon">🎥</span>
+                            <span class="feature-text">解析视频信息</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">📁</span>
+                            <span class="feature-text">多格式下载</span>
+                        </div>
+                        <div class="feature-item">
+                            <span class="feature-icon">📝</span>
+                            <span class="feature-text">历史记录</span>
+                        </div>
+                    </div>
+                    <div class="hero-actions">
+                        <button class="download-btn primary" id="downloadBtn">
+                            <span class="btn-icon">⬇️</span>
+                            立即下载插件
+                        </button>
+                        <a href="#features" class="learn-more-btn">了解更多功能</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <div class="browser-mockup">
+                        <div class="browser-header">
+                            <div class="browser-buttons">
+                                <span class="btn-close"></span>
+                                <span class="btn-minimize"></span>
+                                <span class="btn-maximize"></span>
+                            </div>
+                            <div class="browser-url">chrome-extension://...</div>
+                        </div>
+                        <div class="browser-content">
+                            <div class="plugin-preview">
+                                <div class="plugin-header">易弗YouTube视频下载</div>
+                                <div class="plugin-input">
+                                    <input type="text" placeholder="请在此处粘贴YouTube视频URL" readonly>
+                                    <button>解析视频</button>
+                                </div>
+                                <div class="plugin-info">
+                                    <div class="video-thumbnail"></div>
+                                    <div class="video-details">
+                                        <div class="video-title">示例视频标题</div>
+                                        <div class="video-options">多种清晰度可选</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 功能特色区域 -->
+        <section class="features" id="features">
+            <div class="features-container">
+                <div class="section-header">
+                    <h2 class="section-title">功能特色</h2>
+                    <p class="section-description">强大的功能，简单的操作</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon-large">🔍</div>
+                        <h3 class="feature-title">智能解析</h3>
+                        <p class="feature-desc">自动解析YouTube视频信息，包括标题、描述、上传日期等详细信息。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-large">🎬</div>
+                        <h3 class="feature-title">多格式支持</h3>
+                        <p class="feature-desc">支持MP4、WebM等多种视频格式，提供1080p、720p、480p等多种清晰度选择。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-large">⚡</div>
+                        <h3 class="feature-title">快速下载</h3>
+                        <p class="feature-desc">优化的下载算法，支持断点续传，提供实时下载进度显示。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-large">📊</div>
+                        <h3 class="feature-title">历史管理</h3>
+                        <p class="feature-desc">自动记录下载历史，方便查看和管理已下载的视频文件。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-large">🔔</div>
+                        <h3 class="feature-title">智能通知</h3>
+                        <p class="feature-desc">下载完成后自动发送系统通知，让您第一时间知晓下载状态。</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon-large">🛡️</div>
+                        <h3 class="feature-title">安全可靠</h3>
+                        <p class="feature-desc">严格遵循Chrome扩展安全标准，保护您的数据安全和隐私。</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 安装指南区域 -->
+        <section class="install-guide" id="install">
+            <div class="install-container">
+                <div class="section-header">
+                    <h2 class="section-title">安装指南</h2>
+                    <p class="section-description">简单几步，开始使用</p>
+                </div>
+                <div class="install-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3 class="step-title">下载插件</h3>
+                            <p class="step-desc">点击上方的"立即下载插件"按钮，下载插件压缩包到您的计算机。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3 class="step-title">解压文件</h3>
+                            <p class="step-desc">将下载的压缩包解压到任意文件夹，记住解压后的文件夹位置。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3 class="step-title">打开Chrome设置</h3>
+                            <p class="step-desc">在Chrome浏览器中输入 <code>chrome://extensions/</code> 并回车，进入扩展程序管理页面。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3 class="step-title">启用开发者模式</h3>
+                            <p class="step-desc">在扩展程序页面右上角，打开"开发者模式"开关。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div class="step-content">
+                            <h3 class="step-title">加载插件</h3>
+                            <p class="step-desc">点击"加载已解压的扩展程序"按钮，选择之前解压的插件文件夹。</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">6</div>
+                        <div class="step-content">
+                            <h3 class="step-title">开始使用</h3>
+                            <p class="step-desc">安装成功后，您可以在Chrome工具栏看到插件图标，点击即可开始使用。</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="install-note">
+                    <p><strong>注意：</strong>本插件仅供学习和个人使用，请遵守相关法律法规和YouTube服务条款。</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="footer" id="contact">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-info">
+                    <div class="footer-logo">
+                        <img src="images/logo.png" alt="易弗YouTube视频下载" class="footer-logo-img">
+                        <span class="footer-logo-text">易弗YouTube视频下载</span>
+                    </div>
+                    <p class="footer-desc">简单易用的YouTube视频下载工具</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-column">
+                        <h4 class="footer-title">产品</h4>
+                        <ul class="footer-list">
+                            <li><a href="#features">功能特色</a></li>
+                            <li><a href="#install">安装指南</a></li>
+                            <li><a href="#" onclick="downloadPlugin()">下载插件</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4 class="footer-title">支持</h4>
+                        <ul class="footer-list">
+                            <li><a href="mailto:iffcloud@163.com">技术支持</a></li>
+                            <li><a href="mailto:iffcloud@163.com">问题反馈</a></li>
+                            <li><a href="mailto:iffcloud@163.com">功能建议</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-column">
+                        <h4 class="footer-title">联系方式</h4>
+                        <ul class="footer-list">
+                            <li>联系人: iff</li>
+                            <li>邮箱: iffcloud@163.com</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p class="copyright">© 2025 易弗的YouTube视频下载器，仅供学习使用，联系人: iff，邮箱: iffcloud@163.com</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/main.js"></script>
+</body>
+</html>

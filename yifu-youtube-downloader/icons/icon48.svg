@@ -1,0 +1,7 @@
+<!-- 48x48 图标 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+    <circle cx="24" cy="24" r="20" fill="#ff4757" stroke="#fff" stroke-width="2"/>
+    <path d="M24 10 L24 32 M16 26 L24 32 L32 26" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <line x1="12" y1="36" x2="36" y2="36" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+    <polygon points="16,14 16,22 24,18" fill="#fff" opacity="0.8"/>
+</svg>
