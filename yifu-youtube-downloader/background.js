@@ -56,13 +56,12 @@ function startDownload(url, filename) {
         // 创建一个模拟的视频文件内容
         const mockVideoContent = createMockVideoFile();
         
-        // 将内容转换为Blob URL
-        const blob = new Blob([mockVideoContent], { type: 'video/mp4' });
-        const blobUrl = URL.createObjectURL(blob);
+        // 使用 Data URL 替代 Blob URL，兼容 Manifest V3
+        const dataUrl = createDataUrl(mockVideoContent);
         
         // 使用Chrome下载API
         chrome.downloads.download({
-            url: blobUrl,
+            url: dataUrl,
             filename: filename,
             saveAs: false // 自动保存到默认下载目录
         }, (downloadId) => {
@@ -94,6 +93,30 @@ function createMockVideoFile() {
 插件版本: 1.0
 
 © 2025 易弗的YouTube视频下载器`;
+}
+
+/**
+ * 创建Data URL，兼容Manifest V3
+ * @param {string} content - 文件内容
+ * @returns {string} - Data URL
+ */
+function createDataUrl(content) {
+    // 将文本内容转换为 base64 编码的 Data URL
+    const encoder = new TextEncoder();
+    const data = encoder.encode(content);
+    
+    // 将 Uint8Array 转换为字符串
+    let binary = '';
+    const len = data.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(data[i]);
+    }
+    
+    // 创建 base64 编码
+    const base64 = btoa(binary);
+    
+    // 返回 Data URL，设置为文本文件类型
+    return `data:text/plain;base64,${base64}`;
 }
 
 /**
