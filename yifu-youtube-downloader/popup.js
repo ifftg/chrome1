@@ -69,7 +69,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
         try {
             // 使用真实的YouTube解析器解析视频
+            console.log('开始解析视频:', url);
             const videoData = await youtubeParser.parseVideo(url);
+            
+            console.log('解析结果:', videoData);
+            console.log('找到格式数量:', videoData.formats.length);
             
             // 转换数据格式以适配现有的显示函数
             const adaptedVideoData = {
@@ -81,13 +85,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 channelName: videoData.channelName,
                 duration: videoData.duration,
                 formats: videoData.formats.map(format => ({
-                    quality: `${format.quality} ${format.format}`,
+                    quality: format.quality,
+                    format: format.format,
                     size: format.fileSize,
                     url: format.url,
                     itag: format.itag,
-                    type: format.type
+                    type: format.type,
+                    hasAudio: format.hasAudio,
+                    note: format.note
                 }))
             };
+            
+            console.log('适配后的数据:', adaptedVideoData);
             
             // 保存当前视频数据
             currentVideoData = adaptedVideoData;
@@ -133,16 +142,38 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 清空并填充清晰度选项
         qualitySelect.innerHTML = '<option value="">请选择清晰度</option>';
-        videoData.formats.forEach((format, index) => {
-            const option = document.createElement('option');
-            option.value = index;
-            option.textContent = `${format.quality} (${format.size})`;
-            // 如果是备用格式，添加说明
-            if (format.type === 'fallback') {
-                option.textContent += ' - 需要外部工具';
-            }
-            qualitySelect.appendChild(option);
-        });
+        
+        // 分类显示格式
+        const realFormats = videoData.formats.filter(f => f.type !== 'fallback');
+        const fallbackFormats = videoData.formats.filter(f => f.type === 'fallback');
+        
+        // 先显示真实格式
+        if (realFormats.length > 0) {
+            const realGroup = document.createElement('optgroup');
+            realGroup.label = `真实可用格式 (${realFormats.length}个)`;
+            realFormats.forEach((format, index) => {
+                const option = document.createElement('option');
+                option.value = videoData.formats.indexOf(format);
+                const audioInfo = format.hasAudio ? '含音频' : '仅视频';
+                option.textContent = `${format.quality} ${format.format} (${format.size}) - ${audioInfo}`;
+                realGroup.appendChild(option);
+            });
+            qualitySelect.appendChild(realGroup);
+        }
+        
+        // 再显示备用格式
+        if (fallbackFormats.length > 0) {
+            const fallbackGroup = document.createElement('optgroup');
+            fallbackGroup.label = '备用格式 (需要外部工具)';
+            fallbackFormats.forEach((format, index) => {
+                const option = document.createElement('option');
+                option.value = videoData.formats.indexOf(format);
+                option.textContent = `${format.quality} ${format.format} - 需要外部下载器`;
+                option.style.color = '#999';
+                fallbackGroup.appendChild(option);
+            });
+            qualitySelect.appendChild(fallbackGroup);
+        }
 
         // 显示视频信息区域
         videoInfo.style.display = 'block';

@@ -118,26 +118,48 @@ class YouTubeParser {
      */
     async parseVideoFormats(html, videoId) {
         try {
-            // 查找player response数据
-            const playerResponseMatch = html.match(/var ytInitialPlayerResponse = ({.+?});/);
+            // 查找player response数据 - 使用更准确的正则表达式
+            let playerResponseMatch = html.match(/var ytInitialPlayerResponse\s*=\s*({.+?});/);
+            
+            // 如果第一种方式失败，尝试其他方式
             if (!playerResponseMatch) {
+                playerResponseMatch = html.match(/ytInitialPlayerResponse["']\s*:\s*({.+?}),/);
+            }
+            if (!playerResponseMatch) {
+                playerResponseMatch = html.match(/ytplayer\.config\s*=\s*({.+?});/);
+            }
+            
+            if (!playerResponseMatch) {
+                console.log('未找到播放器数据，HTML长度:', html.length);
                 throw new Error('未找到播放器数据');
             }
 
+            console.log('找到播放器数据，长度:', playerResponseMatch[1].length);
             const playerResponse = JSON.parse(playerResponseMatch[1]);
-            const streamingData = playerResponse.videoDetails?.streamingData || 
-                                playerResponse.streamingData;
+            
+            // 更详细的数据结构检查
+            console.log('playerResponse结构:', Object.keys(playerResponse));
+            
+            const streamingData = playerResponse.streamingData || 
+                                playerResponse.videoDetails?.streamingData;
 
             if (!streamingData) {
+                console.log('streamingData为空，尝试其他数据源...');
                 throw new Error('未找到流媒体数据');
             }
+
+            console.log('streamingData结构:', Object.keys(streamingData));
+            console.log('adaptiveFormats数量:', streamingData.adaptiveFormats?.length || 0);
+            console.log('formats数量:', streamingData.formats?.length || 0);
 
             const formats = [];
 
             // 处理自适应格式（音频+视频分离）
-            if (streamingData.adaptiveFormats) {
+            if (streamingData.adaptiveFormats && streamingData.adaptiveFormats.length > 0) {
+                console.log('处理adaptiveFormats...');
                 for (const format of streamingData.adaptiveFormats) {
-                    if (format.mimeType && format.mimeType.includes('video')) {
+                    if (format.mimeType && format.mimeType.includes('video') && format.url) {
+                        console.log(`找到视频格式: ${format.qualityLabel || format.quality} ${format.mimeType}`);
                         formats.push({
                             itag: format.itag,
                             quality: format.qualityLabel || format.quality || '未知',
@@ -145,29 +167,48 @@ class YouTubeParser {
                             url: format.url,
                             fileSize: format.contentLength ? this.formatFileSize(format.contentLength) : '未知大小',
                             fps: format.fps || 30,
-                            type: 'video'
+                            type: 'adaptive',
+                            hasAudio: false // 自适应格式通常只有视频
                         });
                     }
                 }
             }
 
-            // 处理合并格式（音频+视频）
-            if (streamingData.formats) {
+            // 处理合并格式（音频+视频）- 这些通常更容易下载
+            if (streamingData.formats && streamingData.formats.length > 0) {
+                console.log('处理合并formats...');
                 for (const format of streamingData.formats) {
-                    formats.push({
-                        itag: format.itag,
-                        quality: format.qualityLabel || format.quality || '未知',
-                        format: this.extractFormatFromMime(format.mimeType),
-                        url: format.url,
-                        fileSize: format.contentLength ? this.formatFileSize(format.contentLength) : '未知大小',
-                        fps: format.fps || 30,
-                        type: 'combined'
-                    });
+                    if (format.url) {
+                        console.log(`找到合并格式: ${format.qualityLabel || format.quality} ${format.mimeType}`);
+                        formats.push({
+                            itag: format.itag,
+                            quality: format.qualityLabel || format.quality || '未知',
+                            format: this.extractFormatFromMime(format.mimeType),
+                            url: format.url,
+                            fileSize: format.contentLength ? this.formatFileSize(format.contentLength) : '未知大小',
+                            fps: format.fps || 30,
+                            type: 'combined',
+                            hasAudio: true // 合并格式包含音频
+                        });
+                    }
                 }
             }
 
-            // 按质量排序
+            // 检查是否找到了真实的格式
+            if (formats.length === 0) {
+                console.log('没有找到任何真实格式，使用备用格式');
+                return this.getFallbackFormats(videoId);
+            }
+
+            console.log(`成功解析到 ${formats.length} 个真实格式`);
+
+            // 按质量排序，优先显示合并格式（包含音频）
             formats.sort((a, b) => {
+                // 首先按是否包含音频排序
+                if (a.hasAudio && !b.hasAudio) return -1;
+                if (!a.hasAudio && b.hasAudio) return 1;
+                
+                // 然后按质量排序
                 const qualityOrder = {'2160p': 4, '1440p': 3, '1080p': 2, '720p': 1, '480p': 0, '360p': -1, '240p': -2, '144p': -3};
                 return (qualityOrder[b.quality] || -4) - (qualityOrder[a.quality] || -4);
             });
@@ -186,24 +227,15 @@ class YouTubeParser {
     getFallbackFormats(videoId) {
         return [
             {
-                itag: 22,
-                quality: '720p',
-                format: 'MP4',
+                itag: 'fallback_hd',
+                quality: '高清',
+                format: '通用格式',
                 url: `https://www.youtube.com/watch?v=${videoId}`,
                 fileSize: '未知大小',
                 fps: 30,
                 type: 'fallback',
-                note: '需要外部工具下载'
-            },
-            {
-                itag: 18,
-                quality: '360p',
-                format: 'MP4',
-                url: `https://www.youtube.com/watch?v=${videoId}`,
-                fileSize: '未知大小',
-                fps: 30,
-                type: 'fallback',
-                note: '需要外部工具下载'
+                hasAudio: true,
+                note: '无法解析真实格式，需要使用外部下载工具'
             }
         ];
     }
