@@ -300,6 +300,38 @@ body {
     font-size: 14px;
 }
 
+/* 新增样式 - 频道和时长信息 */
+.channel-info,
+.duration-info {
+    margin: 8px 0;
+    padding: 6px 0;
+    font-size: 13px;
+    color: #666;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.channel-info:last-child,
+.duration-info:last-child {
+    border-bottom: none;
+}
+
+/* 格式选择下拉菜单增强 */
+#qualitySelect option[disabled] {
+    color: #999;
+    font-style: italic;
+}
+
+/* 错误消息样式增强 */
+.error-message {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
 /* 响应式设计 */
 @media (max-width: 420px) {
     body {

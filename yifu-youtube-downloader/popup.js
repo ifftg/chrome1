@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 当前解析的视频数据
     let currentVideoData = null;
+    
+    // YouTube解析器实例
+    let youtubeParser = null;
 
     // 初始化插件
     init();
@@ -24,6 +27,9 @@ document.addEventListener('DOMContentLoaded', function() {
      * 初始化函数 - 设置事件监听器和加载历史记录
      */
     function init() {
+        // 初始化YouTube解析器
+        youtubeParser = new YouTubeParser();
+        
         // 绑定事件监听器
         parseBtn.addEventListener('click', parseVideo);
         downloadBtn.addEventListener('click', downloadVideo);
@@ -51,7 +57,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = urlInput.value.trim();
         
         // 验证URL格式
-        if (!isValidYouTubeUrl(url)) {
+        if (!youtubeParser.isValidYouTubeUrl(url)) {
             showError('请输入有效的YouTube视频URL');
             return;
         }
@@ -62,76 +68,42 @@ document.addEventListener('DOMContentLoaded', function() {
         hideVideoInfo();
 
         try {
-            // 提取视频ID
-            const videoId = extractVideoId(url);
-            if (!videoId) {
-                throw new Error('无法提取视频ID');
-            }
-
-            // 模拟获取视频信息（实际应用中需要使用YouTube API或其他方法）
-            const videoData = await fetchVideoInfo(videoId);
+            // 使用真实的YouTube解析器解析视频
+            const videoData = await youtubeParser.parseVideo(url);
+            
+            // 转换数据格式以适配现有的显示函数
+            const adaptedVideoData = {
+                id: videoData.videoId,
+                title: videoData.title,
+                description: videoData.description,
+                thumbnail: videoData.thumbnail,
+                uploadDate: videoData.uploadDate,
+                channelName: videoData.channelName,
+                duration: videoData.duration,
+                formats: videoData.formats.map(format => ({
+                    quality: `${format.quality} ${format.format}`,
+                    size: format.fileSize,
+                    url: format.url,
+                    itag: format.itag,
+                    type: format.type
+                }))
+            };
             
             // 保存当前视频数据
-            currentVideoData = videoData;
+            currentVideoData = adaptedVideoData;
             
             // 显示视频信息
-            displayVideoInfo(videoData);
+            displayVideoInfo(adaptedVideoData);
             
         } catch (error) {
             console.error('解析视频失败:', error);
-            showError('URL无效或解析失败，请检查视频链接是否正确');
+            showError(`解析失败: ${error.message}`);
         } finally {
             showLoading(false);
         }
     }
 
-    /**
-     * 验证YouTube URL格式
-     * @param {string} url - 要验证的URL
-     * @returns {boolean} - 是否为有效的YouTube URL
-     */
-    function isValidYouTubeUrl(url) {
-        const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/;
-        return youtubeRegex.test(url);
-    }
-
-    /**
-     * 从URL中提取视频ID
-     * @param {string} url - YouTube视频URL
-     * @returns {string|null} - 视频ID或null
-     */
-    function extractVideoId(url) {
-        const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
-        const match = url.match(regex);
-        return match ? match[1] : null;
-    }
-
-    /**
-     * 获取视频信息（模拟函数，实际应用需要真实的API）
-     * @param {string} videoId - 视频ID
-     * @returns {Promise<Object>} - 视频信息对象
-     */
-    async function fetchVideoInfo(videoId) {
-        // 模拟API延迟
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // 模拟视频信息（实际应用中应该调用真实的YouTube API或其他服务）
-        const mockVideoData = {
-            id: videoId,
-            title: '示例视频标题 - 这是一个演示视频',
-            description: '这是一个示例视频的描述。在实际应用中，这里会显示真实的视频描述信息。由于YouTube API的限制，这里使用模拟数据进行演示。',
-            thumbnail: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`,
-            uploadDate: '2024-01-15',
-            formats: [
-                { quality: '1080p MP4', size: '125.5 MB', url: `https://example.com/video_${videoId}_1080p.mp4` },
-                { quality: '720p MP4', size: '78.2 MB', url: `https://example.com/video_${videoId}_720p.mp4` },
-                { quality: '480p MP4', size: '45.8 MB', url: `https://example.com/video_${videoId}_480p.mp4` },
-                { quality: '360p WebM', size: '28.3 MB', url: `https://example.com/video_${videoId}_360p.webm` }
-            ]
-        };
-
-        return mockVideoData;
-    }
+    // 旧的模拟函数已被移除，现在使用YouTubeParser类中的真实解析功能
 
     /**
      * 显示视频信息
@@ -139,17 +111,36 @@ document.addEventListener('DOMContentLoaded', function() {
      */
     function displayVideoInfo(videoData) {
         // 设置基本信息
-        document.getElementById('thumbnail').src = videoData.thumbnail;
+        document.getElementById('thumbnail').src = videoData.thumbnail || `https://img.youtube.com/vi/${videoData.id}/mqdefault.jpg`;
         document.getElementById('title').textContent = videoData.title;
         document.getElementById('description').textContent = videoData.description;
         document.getElementById('uploadDate').textContent = videoData.uploadDate;
+
+        // 显示额外信息（如果有）
+        if (videoData.channelName) {
+            const channelInfo = document.createElement('div');
+            channelInfo.className = 'channel-info';
+            channelInfo.innerHTML = `<strong>频道:</strong> ${videoData.channelName}`;
+            document.getElementById('description').parentNode.appendChild(channelInfo);
+        }
+
+        if (videoData.duration) {
+            const durationInfo = document.createElement('div');
+            durationInfo.className = 'duration-info';
+            durationInfo.innerHTML = `<strong>时长:</strong> ${videoData.duration}`;
+            document.getElementById('description').parentNode.appendChild(durationInfo);
+        }
 
         // 清空并填充清晰度选项
         qualitySelect.innerHTML = '<option value="">请选择清晰度</option>';
         videoData.formats.forEach((format, index) => {
             const option = document.createElement('option');
             option.value = index;
-            option.textContent = format.quality;
+            option.textContent = `${format.quality} (${format.size})`;
+            // 如果是备用格式，添加说明
+            if (format.type === 'fallback') {
+                option.textContent += ' - 需要外部工具';
+            }
             qualitySelect.appendChild(option);
         });
 
@@ -176,7 +167,7 @@ document.addEventListener('DOMContentLoaded', function() {
     /**
      * 下载视频
      */
-    function downloadVideo() {
+    async function downloadVideo() {
         if (!currentVideoData || qualitySelect.value === '') {
             showError('请先选择视频清晰度');
             return;
@@ -184,24 +175,60 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const selectedFormat = currentVideoData.formats[qualitySelect.value];
         
+        // 检查是否为备用格式
+        if (selectedFormat.type === 'fallback') {
+            showError('此格式需要外部下载工具。请复制视频URL使用专门的YouTube下载器。');
+            return;
+        }
+        
         // 显示进度条
         progressContainer.style.display = 'flex';
         progressBar.style.width = '0%';
-        progressText.textContent = '0%';
+        progressText.textContent = '准备下载...';
         
         // 禁用下载按钮
         downloadBtn.disabled = true;
         downloadBtn.textContent = '下载中...';
 
-        // 发送下载请求到background script
-        chrome.runtime.sendMessage({
-            action: 'downloadVideo',
-            data: {
-                url: selectedFormat.url,
-                filename: `${currentVideoData.title}.${selectedFormat.quality.includes('WebM') ? 'webm' : 'mp4'}`,
-                videoData: currentVideoData
+        try {
+            // 生成安全的文件名
+            const safeTitle = currentVideoData.title.replace(/[^\w\s-]/g, '').trim();
+            const extension = selectedFormat.quality.includes('WebM') ? 'webm' : 'mp4';
+            const filename = `${safeTitle}.${extension}`;
+
+            // 如果有真实的下载URL，使用Chrome下载API
+            if (selectedFormat.url && !selectedFormat.url.includes('example.com')) {
+                // 发送下载请求到background script
+                chrome.runtime.sendMessage({
+                    action: 'downloadVideo',
+                    data: {
+                        url: selectedFormat.url,
+                        filename: filename,
+                        videoData: currentVideoData,
+                        format: selectedFormat
+                    }
+                });
+            } else {
+                // 如果没有真实URL，尝试重新获取下载链接
+                progressText.textContent = '获取下载链接...';
+                
+                const downloadUrl = await youtubeParser.getDownloadUrl(currentVideoData.id, selectedFormat.itag);
+                
+                chrome.runtime.sendMessage({
+                    action: 'downloadVideo',
+                    data: {
+                        url: downloadUrl,
+                        filename: filename,
+                        videoData: currentVideoData,
+                        format: selectedFormat
+                    }
+                });
             }
-        });
+        } catch (error) {
+            console.error('下载失败:', error);
+            showError(`下载失败: ${error.message}`);
+            onDownloadError(error.message);
+        }
     }
 
     /**

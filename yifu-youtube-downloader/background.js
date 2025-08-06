@@ -50,57 +50,101 @@ async function handleVideoDownload(downloadData, tab) {
  */
 function startDownload(url, filename) {
     return new Promise((resolve, reject) => {
-        // 由于实际的YouTube视频下载需要复杂的API和可能的法律考虑，
-        // 这里我们创建一个模拟下载功能作为演示
-        
-        // 创建一个模拟的视频文件内容
-        const mockVideoContent = createMockVideoFile();
-        
-        // 使用 Data URL 替代 Blob URL，兼容 Manifest V3
-        const dataUrl = createDataUrl(mockVideoContent);
-        
-        // 使用Chrome下载API
-        chrome.downloads.download({
-            url: dataUrl,
-            filename: filename,
-            saveAs: false // 自动保存到默认下载目录
-        }, (downloadId) => {
-            if (chrome.runtime.lastError) {
-                reject(new Error(chrome.runtime.lastError.message));
-            } else {
-                resolve(downloadId);
-            }
-        });
+        // 检查URL是否为真实的视频下载链接
+        if (url && !url.includes('example.com') && (url.includes('googlevideo.com') || url.includes('youtube.com'))) {
+            // 尝试使用真实的下载URL
+            chrome.downloads.download({
+                url: url,
+                filename: filename,
+                saveAs: false,
+                headers: [
+                    {
+                        name: 'User-Agent',
+                        value: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                    },
+                    {
+                        name: 'Referer',
+                        value: 'https://www.youtube.com/'
+                    }
+                ]
+            }, (downloadId) => {
+                if (chrome.runtime.lastError) {
+                    console.warn('真实下载失败，使用备用方法:', chrome.runtime.lastError.message);
+                    // 如果真实下载失败，回退到演示模式
+                    fallbackDownload(filename, resolve, reject);
+                } else {
+                    resolve(downloadId);
+                }
+            });
+        } else {
+            // 如果没有真实URL，使用演示下载
+            fallbackDownload(filename, resolve, reject);
+        }
     });
 }
 
 /**
- * 创建模拟视频文件内容
- * @returns {string} - 模拟内容
+ * 备用下载方法（演示用）
+ * @param {string} filename - 文件名
+ * @param {Function} resolve - Promise resolve函数
+ * @param {Function} reject - Promise reject函数
  */
-function createMockVideoFile() {
-    // 这里创建一个简单的文本内容作为演示
-    // 实际应用中这里应该是真实的视频数据
-    return `易弗YouTube视频下载器 - 演示文件
+function fallbackDownload(filename, resolve, reject) {
+    // 创建一个包含说明的文件
+    const instructionContent = createInstructionFile();
+    const dataUrl = createDataUrl(instructionContent, 'text/plain');
+    
+    // 修改文件名为.txt格式
+    const txtFilename = filename.replace(/\.(mp4|webm|flv)$/i, '.txt');
+    
+    chrome.downloads.download({
+        url: dataUrl,
+        filename: txtFilename,
+        saveAs: false
+    }, (downloadId) => {
+        if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message));
+        } else {
+            resolve(downloadId);
+        }
+    });
+}
 
-这是一个演示文件，用于测试下载功能。
-在实际应用中，这里应该是真实的视频内容。
+/**
+ * 创建说明文件内容
+ * @returns {string} - 说明内容
+ */
+function createInstructionFile() {
+    return `易弗YouTube视频下载器 - 下载说明
 
-注意：由于YouTube的服务条款和技术限制，
-实际的视频下载需要使用专门的API和服务。
+由于技术和法律限制，直接下载YouTube视频需要特殊处理。
 
-下载时间: ${new Date().toLocaleString('zh-CN')}
+建议的下载方法：
+1. 使用专业的YouTube下载工具（如yt-dlp, youtube-dl等）
+2. 使用在线YouTube下载网站
+3. 使用其他支持YouTube下载的浏览器插件
+
+本插件已成功解析视频信息，包括：
+- 视频标题和描述
+- 可用的清晰度选项
+- 视频元数据
+
+如需真实下载功能，请参考开源项目或使用专门的下载工具。
+
+解析时间: ${new Date().toLocaleString('zh-CN')}
 插件版本: 1.0
 
-© 2025 易弗的YouTube视频下载器`;
+© 2025 易弗的YouTube视频下载器
+仅供学习和研究使用`;
 }
 
 /**
  * 创建Data URL，兼容Manifest V3
  * @param {string} content - 文件内容
+ * @param {string} mimeType - MIME类型
  * @returns {string} - Data URL
  */
-function createDataUrl(content) {
+function createDataUrl(content, mimeType = 'text/plain') {
     // 将文本内容转换为 base64 编码的 Data URL
     const encoder = new TextEncoder();
     const data = encoder.encode(content);
@@ -115,8 +159,8 @@ function createDataUrl(content) {
     // 创建 base64 编码
     const base64 = btoa(binary);
     
-    // 返回 Data URL，设置为文本文件类型
-    return `data:text/plain;base64,${base64}`;
+    // 返回 Data URL，使用指定的MIME类型
+    return `data:${mimeType};base64,${base64}`;
 }
 
 /**
