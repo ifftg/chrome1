@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基础功能测试</title>
+</head>
+<body>
+    <h3>基础功能测试</h3>
+    <button id="testBtn">测试按钮</button>
+    <div id="result"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM加载完成');
+            
+            const testBtn = document.getElementById('testBtn');
+            const result = document.getElementById('result');
+            
+            if (testBtn) {
+                console.log('找到测试按钮');
+                testBtn.addEventListener('click', function() {
+                    console.log('按钮被点击了');
+                    result.textContent = '按钮点击成功！时间: ' + new Date().toLocaleString();
+                });
+            } else {
+                console.error('未找到测试按钮');
+            }
+        });
+    </script>
+</body>
+</html>

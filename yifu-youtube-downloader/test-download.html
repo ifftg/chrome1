@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube下载器功能测试</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+        .test-button {
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .test-button:hover {
+            background: #45a049;
+        }
+        .test-button:disabled {
+            background: #cccccc;
+            cursor: not-allowed;
+        }
+        .url-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+        .console-output {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .status.info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 YouTube下载器功能测试</h1>
+        
+        <div class="test-section">
+            <h3>📋 测试说明</h3>
+            <p>此页面用于测试YouTube下载器的核心功能，包括：</p>
+            <ul>
+                <li>✅ 视频信息解析能力</li>
+                <li>✅ 格式选项获取能力</li>
+                <li>✅ 下载链接有效性</li>
+                <li>✅ 整体下载功能可用性</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>🎯 测试视频</h3>
+            <input type="text" class="url-input" id="testUrl" 
+                   value="https://www.youtube.com/watch?v=HiQul9_vmsc" 
+                   placeholder="输入YouTube视频URL">
+            <br>
+            <button class="test-button" onclick="runQuickTest()">🚀 快速测试</button>
+            <button class="test-button" onclick="runFullTest()">🔍 完整测试</button>
+            <button class="test-button" onclick="clearConsole()">🧹 清除日志</button>
+        </div>
+
+        <div class="test-section">
+            <h3>📊 测试状态</h3>
+            <div id="testStatus" class="status info">
+                ⏳ 准备就绪，点击按钮开始测试
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>🖥️ 控制台输出</h3>
+            <div id="consoleOutput" class="console-output">
+控制台日志将在这里显示...
+
+💡 使用说明:
+1. 点击"快速测试"进行基础功能测试
+2. 点击"完整测试"进行详细的功能验证
+3. 观察控制台输出了解测试进度
+4. 查看测试状态了解最终结果
+
+🔧 如果测试失败，请检查:
+- 是否正确加载了youtube-parser.js
+- 网络连接是否正常
+- 视频URL是否有效
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>📈 测试结果解读</h3>
+            <div id="testResults" style="display: none;">
+                <h4>测试完成！结果分析：</h4>
+                <div id="resultDetails"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载必要的脚本 -->
+    <script src="youtube-parser.js"></script>
+    <script src="console-test.js"></script>
+    
+    <script>
+        // 页面测试脚本
+        let isTestRunning = false;
+
+        // 重定向console.log到页面显示
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        
+        function appendToConsole(message, type = 'log') {
+            const output = document.getElementById('consoleOutput');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let prefix = '';
+            switch(type) {
+                case 'error': prefix = '❌ '; break;
+                case 'warn': prefix = '⚠️ '; break;
+                case 'success': prefix = '✅ '; break;
+                default: prefix = 'ℹ️ '; break;
+            }
+            
+            output.textContent += `[${timestamp}] ${prefix}${message}\n`;
+            output.scrollTop = output.scrollHeight;
+        }
+
+        // 重写console方法
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            appendToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            appendToConsole(args.join(' '), 'error');
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            appendToConsole(args.join(' '), 'warn');
+        };
+
+        function updateStatus(message, type = 'info') {
+            const statusEl = document.getElementById('testStatus');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        function setTestButtons(disabled) {
+            const buttons = document.querySelectorAll('.test-button');
+            buttons.forEach(btn => {
+                if (btn.onclick !== clearConsole) {
+                    btn.disabled = disabled;
+                }
+            });
+            isTestRunning = disabled;
+        }
+
+        async function runQuickTest() {
+            if (isTestRunning) return;
+            
+            setTestButtons(true);
+            updateStatus('🚀 正在进行快速测试...', 'info');
+            
+            try {
+                console.log('='.repeat(50));
+                console.log('🚀 开始快速测试');
+                console.log('='.repeat(50));
+                
+                const testUrl = document.getElementById('testUrl').value.trim();
+                if (testUrl !== 'https://www.youtube.com/watch?v=HiQul9_vmsc') {
+                    // 更新测试配置中的URL
+                    TEST_CONFIG.testUrl = testUrl;
+                }
+                
+                const result = await quickTest();
+                
+                if (result.passed) {
+                    updateStatus('✅ 快速测试通过！下载功能基本可用。', 'success');
+                } else {
+                    updateStatus(`⚠️ 测试发现 ${result.errors} 个错误，需要检查。`, 'warning');
+                }
+                
+                showTestResults(result);
+                
+            } catch (error) {
+                console.error('测试过程中发生错误:', error);
+                updateStatus('❌ 测试失败，请查看控制台错误信息。', 'error');
+            } finally {
+                setTestButtons(false);
+            }
+        }
+
+        async function runFullTest() {
+            if (isTestRunning) return;
+            
+            setTestButtons(true);
+            updateStatus('🔍 正在进行完整测试，请耐心等待...', 'info');
+            
+            try {
+                console.log('='.repeat(50));
+                console.log('🔍 开始完整功能测试');
+                console.log('='.repeat(50));
+                
+                const testUrl = document.getElementById('testUrl').value.trim();
+                if (testUrl !== 'https://www.youtube.com/watch?v=HiQul9_vmsc') {
+                    TEST_CONFIG.testUrl = testUrl;
+                }
+                
+                const result = await testYouTubeDownloader();
+                
+                if (result.passed) {
+                    updateStatus('🎉 完整测试通过！所有功能正常工作。', 'success');
+                } else {
+                    updateStatus(`🚨 发现 ${result.errors} 个错误，${result.warnings} 个警告。`, 'error');
+                }
+                
+                showTestResults(result);
+                
+            } catch (error) {
+                console.error('测试过程中发生错误:', error);
+                updateStatus('❌ 测试失败，请查看控制台错误信息。', 'error');
+            } finally {
+                setTestButtons(false);
+            }
+        }
+
+        function showTestResults(result) {
+            const resultsEl = document.getElementById('testResults');
+            const detailsEl = document.getElementById('resultDetails');
+            
+            detailsEl.innerHTML = `
+                <p><strong>测试统计:</strong></p>
+                <ul>
+                    <li>✅ 成功步骤: ${result.successes}</li>
+                    <li>⚠️ 警告: ${result.warnings}</li>
+                    <li>❌ 错误: ${result.errors}</li>
+                    <li>📊 总计: ${result.total}</li>
+                </ul>
+                <p><strong>结论:</strong> ${result.passed ? 
+                    '🎉 测试通过，下载功能可用！' : 
+                    '🔧 需要修复发现的问题。'}</p>
+            `;
+            
+            resultsEl.style.display = 'block';
+        }
+
+        function clearConsole() {
+            document.getElementById('consoleOutput').textContent = '控制台已清除，准备新的测试...\n';
+            document.getElementById('testResults').style.display = 'none';
+            updateStatus('⏳ 准备就绪，点击按钮开始测试', 'info');
+        }
+
+        // 页面加载完成后的初始化
+        window.addEventListener('load', function() {
+            console.log('🎬 YouTube下载器测试页面已加载');
+            console.log('📋 测试工具已准备就绪');
+            
+            // 检查必要的依赖
+            if (typeof YouTubeParser === 'undefined') {
+                updateStatus('❌ YouTubeParser未加载，请检查youtube-parser.js文件', 'error');
+                console.error('YouTubeParser类未找到，测试无法进行');
+            } else {
+                console.log('✅ YouTubeParser已加载，可以开始测试');
+                updateStatus('✅ 所有依赖已加载，可以开始测试', 'success');
+            }
+        });
+    </script>
+</body>
+</html>

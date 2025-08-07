@@ -13,7 +13,8 @@
   "host_permissions": [
     "*://*.youtube.com/*",
     "*://*.googlevideo.com/*",
-    "*://*.ytimg.com/*"
+    "*://*.ytimg.com/*",
+    "http://localhost:3000/*"
   ],
   "action": {
     "default_popup": "popup.html",

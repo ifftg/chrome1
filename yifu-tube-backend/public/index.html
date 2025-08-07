@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>易弗YouTube视频下载器 - 后端服务</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-width: 800px;
+            width: 90%;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .status-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .status-card h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .status-card h3::before {
+            content: "🔧";
+            margin-right: 10px;
+        }
+        
+        .api-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .api-list li {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .api-method {
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .api-url {
+            font-family: 'Courier New', monospace;
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .test-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .test-btn:hover {
+            background: #218838;
+        }
+        
+        .test-section {
+            margin: 30px 0;
+        }
+        
+        .test-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+        
+        .form-group {
+            margin: 15px 0;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        
+        .form-group button:hover {
+            background: #5a67d8;
+        }
+        
+        .form-group button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .result {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 易弗YouTube视频下载器</h1>
+            <p>后端服务运行正常！</p>
+        </div>
+        
+        <div class="status-card">
+            <h3>API接口列表</h3>
+            <ul class="api-list">
+                <li>
+                    <div>
+                        <span class="api-method">GET</span>
+                        <span class="api-url">/api/test</span>
+                    </div>
+                    <button class="test-btn" onclick="testAPI('/api/test')">测试</button>
+                </li>
+                <li>
+                    <div>
+                        <span class="api-method">GET</span>
+                        <span class="api-url">/api/check-ytdlp</span>
+                    </div>
+                    <button class="test-btn" onclick="testAPI('/api/check-ytdlp')">测试</button>
+                </li>
+                <li>
+                    <div>
+                        <span class="api-method">POST</span>
+                        <span class="api-url">/api/parse-video</span>
+                    </div>
+                    <button class="test-btn" onclick="showParseForm()">测试</button>
+                </li>
+                <li>
+                    <div>
+                        <span class="api-method">GET</span>
+                        <span class="api-url">/api/downloads</span>
+                    </div>
+                    <button class="test-btn" onclick="testAPI('/api/downloads')">测试</button>
+                </li>
+            </ul>
+        </div>
+        
+        <div class="test-section">
+            <div class="test-form" id="parseForm" style="display: none;">
+                <h3>🔍 测试视频解析</h3>
+                <div class="form-group">
+                    <label for="videoUrl">YouTube视频URL:</label>
+                    <input type="text" id="videoUrl" 
+                           value="https://www.youtube.com/watch?v=HiQul9_vmsc" 
+                           placeholder="请输入YouTube视频URL">
+                </div>
+                <div class="form-group">
+                    <button onclick="parseVideo()" id="parseBtn">解析视频</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="result"></div>
+        
+        <div class="footer">
+            <p>© 2025 易弗YouTube视频下载器 - 仅供学习研究使用</p>
+            <p>服务器时间: <span id="serverTime"></span></p>
+        </div>
+    </div>
+
+    <script>
+        // 更新服务器时间
+        function updateTime() {
+            document.getElementById('serverTime').textContent = new Date().toLocaleString('zh-CN');
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // 测试API
+        async function testAPI(endpoint) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="result">正在测试 ' + endpoint + '...</div>';
+            
+            try {
+                const response = await fetch(endpoint);
+                const data = await response.json();
+                
+                resultDiv.innerHTML = '<div class="result">' + 
+                    'HTTP ' + response.status + '\n' +
+                    JSON.stringify(data, null, 2) + 
+                    '</div>';
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="result error">错误: ' + error.message + '</div>';
+            }
+        }
+
+        // 显示解析表单
+        function showParseForm() {
+            const form = document.getElementById('parseForm');
+            form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // 解析视频
+        async function parseVideo() {
+            const url = document.getElementById('videoUrl').value.trim();
+            const btn = document.getElementById('parseBtn');
+            const resultDiv = document.getElementById('result');
+            
+            if (!url) {
+                resultDiv.innerHTML = '<div class="result error">请输入YouTube视频URL</div>';
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '解析中...';
+            resultDiv.innerHTML = '<div class="result">正在解析视频: ' + url + '</div>';
+            
+            try {
+                const response = await fetch('/api/parse-video', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '<div class="result">' +
+                        '✅ 解析成功!\n\n' +
+                        '标题: ' + data.data.title + '\n' +
+                        '频道: ' + data.data.channelName + '\n' +
+                        '时长: ' + data.data.duration + '\n' +
+                        '上传日期: ' + data.data.uploadDate + '\n' +
+                        '格式数量: ' + data.data.formats.length + '\n\n' +
+                        '完整响应:\n' + JSON.stringify(data, null, 2) +
+                        '</div>';
+                } else {
+                    resultDiv.innerHTML = '<div class="result error">' +
+                        '❌ 解析失败\n\n' +
+                        JSON.stringify(data, null, 2) +
+                        '</div>';
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '<div class="result error">网络错误: ' + error.message + '</div>';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '解析视频';
+            }
+        }
+
+        // 页面加载时自动测试服务器状态
+        window.addEventListener('load', function() {
+            testAPI('/api/test');
+        });
+    </script>
+</body>
+</html>

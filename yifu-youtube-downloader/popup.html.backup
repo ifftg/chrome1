@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>易弗YouTube视频下载</title>
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+    <!-- 插件标题区域 -->
+    <div class="header">
+        <h1>易弗YouTube视频下载</h1>
+    </div>
+
+    <!-- URL输入区域 -->
+    <div class="input-section">
+        <input type="text" id="urlInput" placeholder="请在此处粘贴YouTube视频URL">
+        <button id="parseBtn">解析视频</button>
+    </div>
+
+    <!-- 错误提示区域 -->
+    <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+    <!-- 加载提示 -->
+    <div id="loading" class="loading" style="display: none;">
+        <div class="spinner"></div>
+        <span>正在解析视频信息...</span>
+    </div>
+
+    <!-- 视频信息展示区域 -->
+    <div id="videoInfo" class="video-info" style="display: none;">
+        <table class="info-table">
+            <tr>
+                <td class="label">封面图:</td>
+                <td><img id="thumbnail" src="" alt="视频封面" class="thumbnail"></td>
+            </tr>
+            <tr>
+                <td class="label">视频标题:</td>
+                <td id="title"></td>
+            </tr>
+            <tr>
+                <td class="label">视频描述:</td>
+                <td id="description" class="description"></td>
+            </tr>
+            <tr>
+                <td class="label">上传日期:</td>
+                <td id="uploadDate"></td>
+            </tr>
+            <tr>
+                <td class="label">清晰度/格式:</td>
+                <td>
+                    <select id="qualitySelect">
+                        <option value="">请选择清晰度</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td class="label">文件大小:</td>
+                <td id="fileSize">-</td>
+            </tr>
+        </table>
+        
+        <!-- 下载按钮 -->
+        <button id="downloadBtn" class="download-btn" disabled>下载视频</button>
+        
+        <!-- 下载进度条 -->
+        <div id="progressContainer" class="progress-container" style="display: none;">
+            <div class="progress-bar">
+                <div id="progressBar" class="progress-fill"></div>
+            </div>
+            <span id="progressText">0%</span>
+        </div>
+    </div>
+
+    <!-- 历史记录区域 -->
+    <div class="history-section">
+        <h3>历史下载记录</h3>
+        <div id="historyList" class="history-list"></div>
+        <button id="clearHistoryBtn" class="clear-history-btn">清除历史记录</button>
+    </div>
+
+    <script src="youtube-parser.js"></script>
+    <script src="advanced-youtube-parser.js"></script>
+    <script src="popup.js"></script>
+</body>
+</html>
