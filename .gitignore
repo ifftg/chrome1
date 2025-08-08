@@ -1,0 +1,213 @@
+# 易弗YouTube视频下载器项目 - GitHub版本控制忽略文件
+# ================================================================
+
+# =========================
+# Node.js 相关文件
+# =========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+.pnpm-debug.log*
+
+# =========================
+# 下载文件和缓存
+# =========================
+# 下载的视频文件（大文件不应该上传到Git）
+yifu-tube-backend/downloads/*.mp4
+yifu-tube-backend/downloads/*.avi
+yifu-tube-backend/downloads/*.mkv
+yifu-tube-backend/downloads/*.mov
+yifu-tube-backend/downloads/*.wmv
+yifu-tube-backend/downloads/*.flv
+yifu-tube-backend/downloads/*.webm
+yifu-tube-backend/downloads/*.m4v
+
+# 但保留downloads文件夹结构
+!yifu-tube-backend/downloads/
+!yifu-tube-backend/downloads/.gitkeep
+
+# =========================
+# 可执行文件
+# =========================
+# yt-dlp可执行文件（体积较大）
+yifu-tube-backend/yt-dlp.exe
+yifu-tube-backend/yt-dlp
+
+# =========================
+# 系统和编辑器文件
+# =========================
+# Windows系统文件
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS系统文件
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# Linux系统文件
+*~
+
+# =========================
+# 编辑器和IDE
+# =========================
+# VSCode
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# WebStorm / IntelliJ
+.idea/
+*.iml
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# =========================
+# 临时文件和日志
+# =========================
+# 日志文件
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 临时文件
+*.tmp
+*.temp
+*.cache
+
+# =========================
+# 构建和分发文件
+# =========================
+# 构建输出
+dist/
+build/
+.output/
+
+# =========================
+# 环境和配置文件
+# =========================
+# 环境变量文件
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# =========================
+# Chrome插件相关
+# =========================
+# 打包后的插件文件
+*.crx
+*.pem
+
+# =========================
+# 特定项目文件
+# =========================
+# 备份文件
+*.backup
+*.bak
+*.orig
+
+# 测试和调试文件
+test-*.html
+debug-*.js
+console-*.js
+
+# =========================
+# 依赖和模块文件
+# =========================
+# 依赖目录
+bower_components/
+
+# 其他包管理器
+.pnpm-store/
+
+# =========================
+# 运行时文件
+# =========================
+# 进程ID文件
+*.pid
+*.seed
+*.pid.lock
+
+# 覆盖率报告
+coverage/
+*.lcov
+
+# =========================
+# 压缩和归档文件
+# =========================
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# 但排除发布包（如果需要的话）
+# !releases/*.zip
+
+# =========================
+# 数据库文件
+# =========================
+*.sqlite
+*.sqlite3
+*.db
+
+# =========================
+# 其他
+# =========================
+# 运行时数据
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
