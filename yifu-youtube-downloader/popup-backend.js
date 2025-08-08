@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     /**
-     * 解析YouTube视频 - 使用后端API
+     * 解析YouTube视频 - 使用后端API（通过background消息通道）
      */
     async function parseVideo() {
         const url = urlInput.value.trim();
@@ -164,25 +164,30 @@ document.addEventListener('DOMContentLoaded', function() {
         updateProgressText('正在连接后端服务...');
 
         try {
-            // 调用后端API解析视频
-            const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PARSE_VIDEO}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ url: url })
+            console.log('📤 向background发送解析请求:', url);
+            const bgResponse = await new Promise((resolve, reject) => {
+                chrome.runtime.sendMessage(
+                    { action: 'parseVideo', data: { url } },
+                    (response) => {
+                        if (chrome.runtime.lastError) {
+                            console.error('❌ chrome.runtime 错误:', chrome.runtime.lastError);
+                            reject(new Error(chrome.runtime.lastError.message));
+                        } else {
+                            resolve(response);
+                        }
+                    }
+                );
             });
 
-            const data = await response.json();
-            
-            if (response.ok && data.status === 'success') {
-                console.log('✅ 视频解析成功:', data.data);
-                currentVideoData = data.data;
+            if (bgResponse && bgResponse.success) {
+                console.log('✅ 视频解析成功:', bgResponse.data);
+                currentVideoData = bgResponse.data;
+                currentVideoData.originalUrl = url;
                 displayVideoInfo(currentVideoData);
                 showSuccess('视频信息解析成功！');
                 updateProgressText('解析完成');
             } else {
-                throw new Error(data.error || '解析失败');
+                throw new Error((bgResponse && bgResponse.error) || '解析失败');
             }
 
         } catch (error) {
@@ -203,7 +208,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // 清除之前的信息
         videoInfo.innerHTML = '';
 
-        // 创建视频信息HTML
+        // 创建包含下载区域的完整HTML
         const infoHTML = `
             <div class="video-thumbnail">
                 <img src="${videoData.thumbnail}" alt="视频缩略图" onerror="this.src='https://via.placeholder.com/300x200/667eea/ffffff?text=无封面'">
@@ -232,22 +237,52 @@ document.addEventListener('DOMContentLoaded', function() {
                     <p>${videoData.description}</p>
                 </div>
             </div>
+            <div style="padding: 15px;">
+                <select id="qualitySelect" style="width: 100%; padding: 10px; margin-bottom: 15px;">
+                    <option value="">请选择下载格式</option>
+                </select>
+                <button id="downloadBtn" class="download-btn" disabled>下载视频</button>
+                <div id="progressContainer" class="progress-container" style="display: none;">
+                    <div class="progress-bar">
+                        <div id="progressBar" class="progress-fill"></div>
+                    </div>
+                    <span id="progressText">0%</span>
+                </div>
+            </div>
         `;
 
         videoInfo.innerHTML = infoHTML;
         videoInfo.style.display = 'block';
 
+        // 重新获取动态创建的元素并绑定事件
+        const newQualitySelect = document.getElementById('qualitySelect');
+        const newDownloadBtn = document.getElementById('downloadBtn');
+
         // 填充格式选择器
         populateQualitySelect(videoData.formats);
+
+        if (newQualitySelect) {
+            newQualitySelect.addEventListener('change', () => {
+                const hasSelection = !!newQualitySelect.value;
+                if (newDownloadBtn) newDownloadBtn.disabled = !hasSelection;
+            });
+        }
+
+        if (newDownloadBtn) {
+            newDownloadBtn.addEventListener('click', () => {
+                downloadVideo();
+            });
+        }
     }
 
     /**
      * 填充格式选择器
      */
     function populateQualitySelect(formats) {
-        if (!qualitySelect) return;
+        const currentQualitySelect = document.getElementById('qualitySelect');
+        if (!currentQualitySelect) return;
 
-        qualitySelect.innerHTML = '<option value="">请选择下载格式</option>';
+        currentQualitySelect.innerHTML = '<option value="">请选择下载格式</option>';
 
         if (formats && formats.length > 0) {
             // 按质量分组
@@ -271,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     recommendedGroup.appendChild(option);
                 });
                 
-                qualitySelect.appendChild(recommendedGroup);
+                currentQualitySelect.appendChild(recommendedGroup);
             }
             
             // 添加其他格式组  
@@ -287,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     otherGroup.appendChild(option);
                 });
                 
-                qualitySelect.appendChild(otherGroup);
+                currentQualitySelect.appendChild(otherGroup);
             }
 
             // 添加仅音频格式组
@@ -302,20 +337,19 @@ document.addEventListener('DOMContentLoaded', function() {
                     audioGroup.appendChild(option);
                 });
                 
-                qualitySelect.appendChild(audioGroup);
+                currentQualitySelect.appendChild(audioGroup);
             }
         } else {
             const option = document.createElement('option');
             option.value = '';
             option.textContent = '暂无可用格式';
             option.disabled = true;
-            qualitySelect.appendChild(option);
+            currentQualitySelect.appendChild(option);
         }
 
         // 启用下载按钮
-        if (downloadBtn) {
-            downloadBtn.disabled = false;
-        }
+        const newDownloadBtn = document.getElementById('downloadBtn');
+        if (newDownloadBtn) newDownloadBtn.disabled = false;
     }
 
     /**
@@ -327,7 +361,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        const selectedValue = qualitySelect.value;
+        const currentQualitySelect = document.getElementById('qualitySelect');
+        const selectedValue = currentQualitySelect ? currentQualitySelect.value : '';
         if (!selectedValue) {
             showError('请选择下载格式');
             return;

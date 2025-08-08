@@ -87,11 +87,19 @@ app.post('/api/parse-video', async (req, res) => {
 
         console.log('🔍 开始解析视频:', url);
 
-        // 使用 yt-dlp 获取视频信息
+        // 使用 yt-dlp 获取视频信息（增强参数，降低403/地区/UA限制）
         const ytDlpProcess = spawn('yt-dlp', [
             '--dump-json',
             '--no-playlist',
             '--no-warnings',
+            '--ignore-config',
+            '--geo-bypass',
+            '--force-ipv4',
+            '--no-check-certificate',
+            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
+            '--referer', 'https://www.youtube.com',
+            '--add-header', 'Accept-Language: zh-CN,zh;q=0.9',
+            '--extractor-args', 'youtube:player_client=android',
             url
         ]);
 
@@ -202,6 +210,89 @@ app.post('/api/parse-video', async (req, res) => {
                 }
             } else {
                 console.error('❌ yt-dlp执行失败:', stderr);
+                // 403 或权限问题时，尝试携带浏览器Cookie重试一次
+                if (/403|forbidden|permission|denied/i.test(stderr || '')) {
+                    console.warn('⚠️ 首次解析失败，尝试 --cookies-from-browser chrome 重试...');
+                    const retry = spawn('yt-dlp', [
+                        '--dump-json',
+                        '--no-playlist',
+                        '--no-warnings',
+                        '--ignore-config',
+                        '--geo-bypass',
+                        '--force-ipv4',
+                        '--no-check-certificate',
+                        '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36',
+                        '--referer', 'https://www.youtube.com',
+                        '--add-header', 'Accept-Language: zh-CN,zh;q=0.9',
+                        '--extractor-args', 'youtube:player_client=android',
+                        '--cookies-from-browser', 'chrome',
+                        url
+                    ]);
+                    let rOut = '', rErr = '';
+                    retry.stdout.on('data', d => (rOut += d.toString()));
+                    retry.stderr.on('data', d => (rErr += d.toString()));
+                    retry.on('close', c => {
+                        if (c === 0 && rOut) {
+                            try {
+                                const videoInfo = JSON.parse(rOut);
+                                const allFormats = videoInfo.formats || [];
+                                const directFormats = allFormats.filter(f => f.protocol === 'https' && f.vcodec !== 'none' && f.height && f.url && !f.url.includes('manifest.googlevideo.com'));
+                                const streamFormats = allFormats.filter(f => f.protocol === 'm3u8_native' && f.vcodec !== 'none' && f.height && f.__working !== false);
+                                const processedDirectFormats = directFormats.map(f => ({
+                                    quality: f.height ? `${f.height}p` : '未知',
+                                    format: f.ext ? f.ext.toUpperCase() : 'MP4',
+                                    fileSize: f.filesize ? formatFileSize(f.filesize) : f.filesize_approx ? formatFileSize(f.filesize_approx) : '未知大小',
+                                    fps: f.fps || 30,
+                                    hasAudio: f.acodec !== 'none',
+                                    format_id: f.format_id,
+                                    url: f.url,
+                                    downloadType: 'direct',
+                                    bitrate: f.tbr || null,
+                                    isRecommended: true
+                                }));
+                                const processedStreamFormats = streamFormats.slice(0, 3).map(f => ({
+                                    quality: f.height ? `${f.height}p` : '未知',
+                                    format: f.ext ? f.ext.toUpperCase() : 'MP4',
+                                    fileSize: '流媒体格式',
+                                    fps: f.fps || 30,
+                                    hasAudio: f.acodec !== 'none',
+                                    format_id: f.format_id,
+                                    url: f.url,
+                                    downloadType: 'stream',
+                                    bitrate: f.tbr || null,
+                                    isRecommended: false
+                                }));
+                                const formats = [...processedDirectFormats, ...processedStreamFormats].sort((a, b) => {
+                                    if (a.isRecommended && !b.isRecommended) return -1;
+                                    if (!a.isRecommended && b.isRecommended) return 1;
+                                    return parseInt(b.quality) - parseInt(a.quality);
+                                });
+                                const extractedInfo = {
+                                    videoId: videoInfo.id || 'unknown',
+                                    title: videoInfo.title || '未知标题',
+                                    description: videoInfo.description ? videoInfo.description.substring(0, 200) + '...' : '暂无描述',
+                                    thumbnail: videoInfo.thumbnail || 'https://via.placeholder.com/300x200/667eea/ffffff?text=无封面',
+                                    uploadDate: videoInfo.upload_date ? `${videoInfo.upload_date.substring(0, 4)}-${videoInfo.upload_date.substring(4, 6)}-${videoInfo.upload_date.substring(6, 8)}` : '未知日期',
+                                    channelName: videoInfo.uploader || '未知频道',
+                                    duration: videoInfo.duration ? formatDuration(videoInfo.duration) : '未知时长',
+                                    formats,
+                                    originalUrl: url
+                                };
+                                console.log('✅ 重试解析成功:', extractedInfo.title);
+                                return res.json({ status: 'success', data: extractedInfo });
+                            } catch (e) {
+                                console.error('❌ 重试解析JSON失败:', e);
+                            }
+                        }
+                        console.error('❌ 重试仍失败:', rErr);
+                        res.status(500).json({
+                            error: '无法获取视频信息，请检查URL是否正确或视频是否可访问',
+                            status: 'error',
+                            details: rErr
+                        });
+                    });
+                    return; // 等待重试回调
+                }
                 res.status(500).json({
                     error: '无法获取视频信息，请检查URL是否正确或视频是否可访问',
                     status: 'error',

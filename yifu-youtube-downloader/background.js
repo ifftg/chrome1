@@ -13,24 +13,35 @@ const API_CONFIG = {
 
 // 监听来自popup的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('收到消息:', message);
+    console.log('📥 Background收到消息:', message);
+    console.log('📤 发送方信息:', sender);
+    
+    if (!message || !message.action) {
+        console.error('❌ 消息格式错误:', message);
+        sendResponse({ success: false, error: '消息格式错误' });
+        return false;
+    }
     
     switch (message.action) {
         case 'parseVideo':
+            console.log('🎯 处理解析视频请求');
             handleParseVideo(message.data, sendResponse);
             return true; // 保持异步连接
             
         case 'downloadVideo':
+            console.log('🎯 处理下载视频请求');
             handleDownloadVideo(message.data, sendResponse);
             return true; // 保持异步连接
             
         case 'checkBackendStatus':
+            console.log('🎯 处理后端状态检查请求');
             handleCheckBackendStatus(sendResponse);
             return true; // 保持异步连接
             
         default:
-            console.warn('未知消息类型:', message.action);
+            console.warn('❌ 未知消息类型:', message.action);
             sendResponse({ success: false, error: '未知消息类型' });
+            return false;
     }
 });
 
@@ -40,6 +51,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function handleParseVideo(data, sendResponse) {
     try {
         console.log('🔍 开始解析视频:', data.url);
+        console.log('🌐 请求后端API:', `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PARSE_VIDEO}`);
         
         const response = await fetch(`${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.PARSE_VIDEO}`, {
             method: 'POST',
@@ -49,14 +61,20 @@ async function handleParseVideo(data, sendResponse) {
             body: JSON.stringify({ url: data.url })
         });
         
+        console.log('📊 后端响应状态:', response.status, response.statusText);
         const result = await response.json();
+        console.log('📋 后端响应数据:', result);
         
-        if (response.ok) {
-            console.log('✅ 视频解析成功');
-            sendResponse({ 
+        if (response.ok && result.status === 'success') {
+            console.log('✅ 视频解析成功，准备发送响应到popup');
+            console.log('🎯 Formats数据:', result.data.formats);
+            
+            const responseData = { 
                 success: true, 
                 data: result.data 
-            });
+            };
+            console.log('📤 发送给popup的响应:', responseData);
+            sendResponse(responseData);
         } else {
             console.error('❌ 视频解析失败:', result.error);
             sendResponse({ 
@@ -67,6 +85,7 @@ async function handleParseVideo(data, sendResponse) {
         
     } catch (error) {
         console.error('❌ 解析请求失败:', error);
+        console.error('🔍 错误详情:', error.message, error.stack);
         sendResponse({ 
             success: false, 
             error: '网络连接失败，请确保后端服务器已启动' 
