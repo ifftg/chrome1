@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "易弗YouTube视频下载",
-  "version": "1.0",
-  "description": "一个简单的YouTube视频下载插件，支持解析视频信息和多种格式下载。",
+  "name": "易弗YouTube视频下载器 - 专业版",
+  "version": "2.0.0",
+  "description": "专业版YouTube视频下载器：智能格式过滤、前端直接下载、完善进度跟踪，稳定高效。",
   "permissions": [
     "downloads",
     "storage",

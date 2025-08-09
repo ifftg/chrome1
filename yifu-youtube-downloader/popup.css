@@ -473,6 +473,84 @@ body {
     overflow-y: auto;
 }
 
+/* 设置区域样式 */
+.settings-section {
+    background: white;
+    padding: 15px 20px;
+    border-top: 1px solid #e1e5e9;
+}
+
+.settings-btn {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+}
+
+.settings-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(116, 185, 255, 0.3);
+}
+
+.settings-btn:active {
+    transform: translateY(0);
+}
+
+.current-dir {
+    font-size: 12px;
+    color: #6c757d;
+    text-align: center;
+    padding: 5px;
+    background: rgba(116, 185, 255, 0.1);
+    border-radius: 4px;
+    border-left: 3px solid #74b9ff;
+}
+
+/* 专业版状态样式 */
+.meta-value.professional {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.meta-value.backend-api {
+    color: #007bff;
+    font-weight: 600;
+}
+
+/* 改进的消息样式 */
+.info-message {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+.info-message.show {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* 下载状态样式增强 */
+.history-item.downloading {
+    border-left: 4px solid #ffc107;
+    background: rgba(255, 193, 7, 0.1);
+}
+
+.history-item.completed {
+    border-left: 4px solid #28a745;
+    background: rgba(40, 167, 69, 0.1);
+}
+
+.history-item.failed {
+    border-left: 4px solid #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
 /* 响应式设计 */
 @media (max-width: 420px) {
     body {
@@ -492,5 +570,10 @@ body {
     .meta-label {
         width: 60px;
         font-size: 12px;
+    }
+    
+    .settings-btn {
+        font-size: 13px;
+        padding: 8px;
     }
 }
